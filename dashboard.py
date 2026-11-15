@@ -2,6 +2,7 @@ from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import joblib
+from dashboard_live import render_live_forecast
 
 from evaluate import EVALUATION_PATH
 
@@ -9,7 +10,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from dashboard_chart import CHART_CSS, load_predictions, render_chart
 
-def render_dashboard(evaluation, chart):
+def render_dashboard(evaluation, chart, live):
     winner = escape(next(
         name
         for name, entry in evaluation["models"].items()
@@ -55,6 +56,7 @@ def render_dashboard(evaluation, chart):
         <h1>Спрос на велопрокат</h1>
     </div></header>
     <main class="wrap">
+    {live}
     {chart}
         <section>
             <h2>Качество на отложенном тесте</h2>
@@ -85,7 +87,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
         day = query.get("day", [""])[0]
         model = query.get("model", ["Ridge"])[0]
         chart = render_chart(self.server.predictions, day, model)
-        content = render_dashboard(self.server.evaluation, chart).encode("utf-8")
+        live = render_live_forecast()
+        content = render_dashboard(self.server.evaluation, chart, live).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))

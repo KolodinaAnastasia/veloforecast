@@ -11,7 +11,7 @@ FORECAST_PATH = EVALUATION_PATH.parent / "latest-forecast.csv"
 
 
 def make_forecast(issued_at, weather, history, evaluation):
-    hours = pd.date_range(issued_at, periods=25, freq="h")[1:]
+    hours = pd.date_range(issued_at.floor("h"), periods=25, freq="h")[1:]
     features = features_for_hours(hours, issued_at, weather, history)
     selected = next(
         entry
