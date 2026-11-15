@@ -6,6 +6,7 @@ from dashboard_live import render_live_forecast
 from dashboard_explain import load_explanation_data, render_explanation
 from dashboard_importance import render_importance
 from dashboard_dependence import render_dependence
+from dashboard_experiments import render_experiments
 
 from evaluate import EVALUATION_PATH
 
@@ -107,7 +108,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.server.evaluation,
             chart,
             live,
-            explanation + self.server.importance + dependence,
+            explanation + self.server.importance + dependence + self.server.experiments,
         ).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -123,6 +124,7 @@ def main():
         server.predictions = load_predictions()
         server.explanation_data = load_explanation_data()
         server.importance = render_importance(server.explanation_data[1], evaluation)
+        server.experiments = render_experiments(evaluation)
         print("Дашборд запущен — http://127.0.0.1:8765", flush=True)
         try:
             server.serve_forever()
