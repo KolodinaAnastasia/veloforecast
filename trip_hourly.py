@@ -27,7 +27,7 @@ def aggregate_trips(month: pd.Period) -> None:
 
     with ZipFile(archive_path) as archive:
         for member in csv_members(archive_path):
-            print(f"Обрабатываю {member}", flush=True)
+            print(f"Обработка файла: {member}", flush=True)
             with archive.open(member) as source:
                 chunks = pd.read_csv(
                     source,

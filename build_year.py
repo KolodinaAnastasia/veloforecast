@@ -34,7 +34,7 @@ def build_year(year: int) -> None:
         key = month.strftime("%Y%m")
         hourly_path = ARCHIVE_DIR / f"{key}-hourly.csv"
         if hourly_path.exists():
-            print(f"{month}: использую готовую почасовую таблицу.")
+            print(f"{month}: почасовая таблица уже сохранена.")
         else:
             aggregate_trips(month)
 

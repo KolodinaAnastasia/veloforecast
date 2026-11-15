@@ -37,7 +37,7 @@ def download_january() -> Path:
 
     url = ARCHIVE_URL + path.name
     partial = path.with_suffix(".zip.part")
-    print(f"Скачиваю {path.name}…", flush=True)
+    print(f"Загрузка архива: {path.name}", flush=True)
 
     try:
         with requests.get(url, stream=True, timeout=(10, 60)) as response:

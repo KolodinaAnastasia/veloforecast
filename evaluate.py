@@ -32,7 +32,7 @@ def evaluate() -> None:
     raw_data = MODEL_DATA.read_bytes()
     data_hash = hashlib.sha256(raw_data).hexdigest()
     if data_hash != journal["data_sha256"]:
-        raise ValueError("Данные изменились после подбора. Снова запусти experiments.py.")
+        raise ValueError("Версия данных отличается от версии в журнале. Требуется повторный подбор (experiments.py).")
 
     data = pd.read_csv(io.BytesIO(raw_data), index_col="hour_utc")
     training = data.loc[data["split"].isin(["train", "validation"])]
