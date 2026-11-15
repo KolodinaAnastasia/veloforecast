@@ -41,7 +41,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -X utf8 app.py check
 ```
 
-Из [официального списка архивов](https://s3.amazonaws.com/tripdata/index.html) скачайте вручную 12 месячных архивов NYC за 2025 год, от `202501-citibike-tripdata.zip` до `202512-citibike-tripdata.zip`. Поместите ZIP-файлы в `state\citibike`. Префикс `JC-` обозначает архивы Джерси-Сити. Папка `state` содержит исходные данные и результаты обработки и исключена из Git.
+Из [официального списка архивов](https://s3.amazonaws.com/tripdata/index.html) скачайте вручную 12 месячных архивов NYC за 2025 год, от `202501-citibike-tripdata.zip` до `202512-citibike-tripdata.zip`. Поместите ZIP-файлы в `state\citibike`. Папка `state` содержит исходные данные и результаты обработки и исключена из Git.
 
 ## Сборка данных и оценка моделей
 
