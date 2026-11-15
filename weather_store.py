@@ -123,15 +123,15 @@ def finish_run(db, run_id, status, added, error=None):
 
 
 def show_log(db):
-    for started, period, status, added, error in db.execute(
+    for source, started, period, status, added, error in db.execute(
         """
-        SELECT started_at, period, status, rows_added, error
+        SELECT source, started_at, period, status, rows_added, error
         FROM load_log
         ORDER BY id DESC
         LIMIT 10
         """
     ):
-        print(f"{started} | {period} | {status} | добавлено: {added}")
+        print(f"{started} | {source} | {period} | {status} | добавлено: {added}")
         if error:
             print(f"  Ошибка: {error}")
 

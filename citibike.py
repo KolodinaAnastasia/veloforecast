@@ -27,36 +27,7 @@ def csv_members(path: Path) -> list[str]:
     return files
 
 
-def download_january() -> Path:
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    path = ARCHIVE_DIR / "202501-citibike-tripdata.zip"
-    metadata = path.with_suffix(".json")
-    if path.exists() and metadata.exists():
-        print("Архив уже скачан.")
-        return path
 
-    url = ARCHIVE_URL + path.name
-    partial = path.with_suffix(".zip.part")
-    print(f"Загрузка архива: {path.name}", flush=True)
-
-    try:
-        with requests.get(url, stream=True, timeout=(10, 60)) as response:
-            response.raise_for_status()
-            last_modified = response.headers.get("Last-Modified")
-            with partial.open("wb") as output:
-                for block in response.iter_content(chunk_size=1024 * 1024):
-                    output.write(block)
-
-        csv_members(partial)
-        metadata.write_text(
-            json.dumps({"url": url, "last_modified": last_modified}, indent=2),
-            encoding="utf-8",
-        )
-        partial.replace(path)
-    finally:
-        partial.unlink(missing_ok=True)
-
-    return path
 
 
 def preview_trips(path: Path) -> None:
@@ -81,5 +52,5 @@ if __name__ == "__main__":
     parser.add_argument("--local", type=Path, help="Путь к скачанному ZIP")
     args = parser.parse_args()
 
-    archive_path = args.local if args.local is not None else download_january()
+    archive_path = args.local or (ARCHIVE_DIR / "202501-citibike-tripdata.zip")
     preview_trips(archive_path)

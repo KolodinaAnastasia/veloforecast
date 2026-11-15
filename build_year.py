@@ -4,21 +4,15 @@ from contextlib import closing
 import pandas as pd
 
 from build_dataset import build_dataset
-from citibike import ARCHIVE_DIR
-from trip_hourly import TIMEZONE, aggregate_trips
+from sync_trips import sync_trip_month
+from trip_hourly import TIMEZONE
 from weather import VARIABLES
 from weather_store import DATABASE, SCHEMA, sync_weather_month
 
 
 def build_year(year: int) -> None:
     months = pd.period_range(f"{year}-01", f"{year}-12", freq="M")
-    missing_archives = [
-        month.strftime("%Y%m")
-        for month in months
-        if not (ARCHIVE_DIR / f"{month.strftime('%Y%m')}-citibike-tripdata.zip").exists()
-    ]
-    if missing_archives:
-        raise FileNotFoundError(f"В state/citibike нет архивов: {', '.join(missing_archives)}")
+
 
     # Последние часы декабря по Нью-Йорку попадают в январь по UTC.
     weather_months = pd.period_range(f"{year}-01", f"{year + 1}-01", freq="M")
@@ -30,16 +24,12 @@ def build_year(year: int) -> None:
     dataset_dir = DATABASE.parent / "datasets"
     monthly_tables = []
 
-    for month in months:
-        key = month.strftime("%Y%m")
-        hourly_path = ARCHIVE_DIR / f"{key}-hourly.csv"
-        if hourly_path.exists():
-            print(f"{month}: почасовая таблица уже сохранена.")
-        else:
-            aggregate_trips(month)
-
-        build_dataset(month)
-        monthly_tables.append(pd.read_csv(dataset_dir / f"{key}-dataset.csv"))
+    with closing(sqlite3.connect(DATABASE)) as db:
+        for month in months:
+            sync_trip_month(db, month)
+            build_dataset(month)
+            key = month.strftime("%Y%m")
+            monthly_tables.append(pd.read_csv(dataset_dir / f"{key}-dataset.csv"))
 
     dataset = pd.concat(monthly_tables, ignore_index=True)
     actual_hours = pd.DatetimeIndex(pd.to_datetime(dataset["hour_utc"], utc=True))
