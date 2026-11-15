@@ -3,6 +3,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import joblib
 from dashboard_live import render_live_forecast
+from dashboard_explain import load_explanation_data, render_explanation
+from dashboard_importance import render_importance
+from dashboard_dependence import render_dependence
 
 from evaluate import EVALUATION_PATH
 
@@ -10,7 +13,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from dashboard_chart import CHART_CSS, load_predictions, render_chart
 
-def render_dashboard(evaluation, chart, live):
+def render_dashboard(evaluation, chart, live, explanation):
     winner = escape(next(
         name
         for name, entry in evaluation["models"].items()
@@ -71,6 +74,7 @@ def render_dashboard(evaluation, chart, live):
                 <tbody>{"".join(rows)}</tbody>
             </table>
         </section>
+        {explanation}
     </main>
 </body>
 </html>"""
@@ -88,7 +92,23 @@ class DashboardHandler(BaseHTTPRequestHandler):
         model = query.get("model", ["Ridge"])[0]
         chart = render_chart(self.server.predictions, day, model)
         live = render_live_forecast()
-        content = render_dashboard(self.server.evaluation, chart, live).encode("utf-8")
+        explanation = render_explanation(
+            self.server.explanation_data,
+            self.server.evaluation,
+            query.get("ex_day", ["2025-11-11"])[0],
+            query.get("ex_hour", ["17"])[0],
+            day,
+            model,
+        )
+        dependence = render_dependence(
+            self.server.explanation_data[1], self.server.evaluation, query
+        )
+        content = render_dashboard(
+            self.server.evaluation,
+            chart,
+            live,
+            explanation + self.server.importance + dependence,
+        ).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(content)))
@@ -101,6 +121,8 @@ def main():
     with ThreadingHTTPServer(("127.0.0.1", 8765), DashboardHandler) as server:
         server.evaluation = evaluation
         server.predictions = load_predictions()
+        server.explanation_data = load_explanation_data()
+        server.importance = render_importance(server.explanation_data[1], evaluation)
         print("Дашборд запущен — http://127.0.0.1:8765", flush=True)
         try:
             server.serve_forever()
