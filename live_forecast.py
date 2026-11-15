@@ -10,13 +10,15 @@ from forecast import make_forecast
 from trip_hourly import TIMEZONE
 from weather import VARIABLES
 
+from http_client import get_json
+
 
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 LIVE_PATH = EVALUATION_PATH.parent / "latest-live-forecast.csv"
 
 
 def load_current_weather() -> pd.DataFrame:
-    response = requests.get(
+    data = get_json(
         WEATHER_URL,
         params={
             "latitude": 40.75,
@@ -27,8 +29,7 @@ def load_current_weather() -> pd.DataFrame:
         },
         timeout=(10, 30),
     )
-    response.raise_for_status()
-    hourly = response.json()["hourly"]
+    hourly = data["hourly"]
     frame = pd.DataFrame({
         "hour_utc": pd.to_datetime(hourly["time"], utc=True),
         **{name: hourly[name] for name in VARIABLES},

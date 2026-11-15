@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from datetime import date, timedelta
+from http_client import get_json
 
 ARCHIVE_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 VARIABLES = ("temperature_2m", "precipitation", "wind_speed_10m")
@@ -8,7 +9,7 @@ SUFFIX = "_previous_day1"
 
 
 def load_archived_weather(start_date: str, end_date: str) -> pd.DataFrame:
-    response = requests.get(
+    data = get_json(
         ARCHIVE_URL,
         params={
             "latitude": 40.75,
@@ -20,8 +21,7 @@ def load_archived_weather(start_date: str, end_date: str) -> pd.DataFrame:
         },
         timeout=(10, 30),
     )
-    response.raise_for_status()
-    hourly = response.json()["hourly"]
+    hourly = data["hourly"]
 
     weather = pd.DataFrame({
         "hour_utc": pd.to_datetime(hourly["time"], utc=True),
